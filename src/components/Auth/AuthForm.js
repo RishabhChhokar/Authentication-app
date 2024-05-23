@@ -16,24 +16,25 @@ const AuthForm = () => {
     setIsLogin((prevState) => !prevState);
   };
 
-  const submitHandler = (event) => {
-    event.preventDefault();
+const submitHandler = async (event) => {
+  event.preventDefault();
 
-    const enteredEmail = emailInputRef.current.value;
-    const enteredPassword = passwordInputRef.current.value;
+  const enteredEmail = emailInputRef.current.value;
+  const enteredPassword = passwordInputRef.current.value;
 
-    setIsLoading(true);
+  setIsLoading(true);
 
-    let url;
-    if (isLogin) {
-      url =
-        "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDBW667VYqKhnmvuSiUVDTGGlNQMVYDHT0";
-    } else {
-      url =
-        "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDBW667VYqKhnmvuSiUVDTGGlNQMVYDHT0";
-    }
+  let url;
+  if (isLogin) {
+    url =
+      "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDBW667VYqKhnmvuSiUVDTGGlNQMVYDHT0";
+  } else {
+    url =
+      "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDBW667VYqKhnmvuSiUVDTGGlNQMVYDHT0";
+  }
 
-    fetch(url, {
+  try {
+    const response = await fetch(url, {
       method: "POST",
       body: JSON.stringify({
         email: enteredEmail,
@@ -43,25 +44,22 @@ const AuthForm = () => {
       headers: {
         "Content-Type": "application/json",
       },
-    })
-      .then((res) => {
-        setIsLoading(false);
-        if (res.ok) {
-          return res.json();
-        } else {
-          return res.json().then((data) => {
-            let errorMessage = "AUTHENTICATION FAILED!";
-            throw new Error(errorMessage);
-          });
-        }
-      })
-      .then((data) => {
-        authCtx.login(data.idToken);
-      })
-      .catch((err) => {
-        alert(err);
-      });
-  };
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      let errorMessage = "AUTHENTICATION FAILED!";
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json();
+    authCtx.login(data.idToken);
+  } catch (err) {
+    alert(err);
+  }
+
+  setIsLoading(false);
+};
 
   return (
     <section className={classes.auth}>

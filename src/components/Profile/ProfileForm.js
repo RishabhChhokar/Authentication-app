@@ -4,17 +4,18 @@ import classes from "./ProfileForm.module.css";
 
 const ProfileForm = () => {
   const newPasswordInputRef = useRef();
-
   const authCtx = useContext(AuthContext);
 
-  const submitHandler = (event) => {
+  const submitHandler = async (event) => {
     event.preventDefault();
 
     const enteredNewPassword = newPasswordInputRef.current.value;
 
-    fetch(
-      "https://identitytoolkit.googleapis.com/v1/accounts:update?key=AIzaSyDBW667VYqKhnmvuSiUVDTGGlNQMVYDHT0",
-      {
+    const url =
+      "https://identitytoolkit.googleapis.com/v1/accounts:update?key=AIzaSyDBW667VYqKhnmvuSiUVDTGGlNQMVYDHT0";
+
+    try {
+      const response = await fetch(url, {
         method: "POST",
         body: JSON.stringify({
           idToken: authCtx.token,
@@ -24,8 +25,15 @@ const ProfileForm = () => {
         headers: {
           "Content-Type": "application/json",
         },
+      });
+
+      if (!response.ok) {
+        throw new Error("Password update failed!");
       }
-    ).then((res) => {});
+      
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (
